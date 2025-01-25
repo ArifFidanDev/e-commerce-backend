@@ -1,6 +1,6 @@
 # E-commerce Backend API
 
-This is a backend system designed for an e-commerce platform. It provides functionalities such as product management, order processing, and user authentication, allowing businesses to manage their online stores efficiently.
+This is a backend system designed for an e-commerce platform. It provides functionalities such as product management, order processing, and user authentication, allowing businesses to manage their online stores.
 
 ## Mind Map Image
 ![Mind Map] (https://gist.github.com/ArifFidanDev/24f82c316fa1ae84629b11dd545ce95c)
