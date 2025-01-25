@@ -1,0 +1,986 @@
+openapi: 3.1.0
+info:
+  title: T-shirt Store Intenship Project
+  description: Creating an API for e-commerce
+  version: 1.1.0
+  contact: 
+    email: ariffidan03@gmail.com
+    url: "https://scramblebit.com/"
+
+# servers:
+#   - url: "https://localhost:4000/api/v1"
+#     description: for local host - secure
+#   - url: "http://localhost:4000/api/v1"
+#     description: for local host - regular
+
+servers:
+  - url: "{protocol}://localhost:4000/api/{version}"
+    description: for local host - secure
+    variables: 
+      version:
+        enum:
+          - v1
+          - v2
+        default: v1
+      protocol:
+        enum:
+          - http
+          - https
+        default: http
+
+components: 
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: token
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+paths:
+  /dummy:
+    get:
+      tags:
+        - Home
+      summary: returns the home page
+      responses:
+        200:
+          description: All good success
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "mystring"
+        400:
+          description: bad request
+        500:
+          description: internal server error!
+
+  /signup:
+    post:
+      tags:
+      - User
+      summary: a new user joins for the first time. Required files are - name, email, password and photo
+      requestbody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+              - name
+              - email
+              - password
+              - photo
+              properties:
+                name:
+                  type: string
+                  required: true
+                email:
+                  type: string
+                  required: true
+                password:
+                  type: string
+                  required: true
+                photo:
+                  in: formData
+                  description: The uploaded file data
+                  type: file
+      responses:
+        200:
+          description: All good success
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "mystring"
+        400:
+          description: bad request
+        500:
+          description: internal server error!
+
+  /login:
+    post:
+      tags:
+      - User
+      summary: User logs into the web-site by providing email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - email
+              - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                password:
+                  type: string
+                  format: password
+                  example: mypassword123
+      responses:
+        200:
+          description: All good success
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "Login successful"
+        400:
+          description: Bad request
+        500:
+          description: Internal server error
+
+  /logout:
+    get:
+      tags:
+      - User
+      summary: Logs out the current user
+      description: This endpoint logs out the user by invalidating the current JWT token.
+      security:
+      - bearerAuth: []
+      responses:
+        200:
+          description: User logged out successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Logout successful"
+        401:
+          description: Unauthorized - Token is missing or invalid
+        500:
+          description: Internal server error
+
+  /forgotPassword:
+    post:
+      tags:
+      - User
+      summary: Forgot Password
+      description: Allows a user to request a password reset link via email.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: The registered email address of the user.
+                  example: "user@example.com"
+      responses:
+        200:
+          description: Password reset email sent successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: e-mail sent successfully
+        404:
+          description: Email not found as registered.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Email not found as registered
+        500:
+          description: Server error while sending email.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Internal server error
+
+  /passwordReset/{token}:
+    post:
+      tags:
+      - User
+      summary: Reset user password
+      parameters:
+        - in: path
+          name: token
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+                confirmPassword:
+                  type: string
+      responses:
+        '200':
+          description: Password reset successful
+        '400':
+          description: Invalid token or password mismatch
+        '500':
+          description: Server error
+
+  /userdashboard:
+    get:
+      tags:
+      - User
+      summary: Get logged-in user details
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  user:
+                    type: object
+        '500':
+          description: Server error
+
+  /password/update:
+    post:
+      tags:
+      - User
+      summary: Change user password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                oldPassword:
+                  type: string
+                  description: Current password of the user
+                newPassword:
+                  type: string
+                  description: New password for the user
+      responses:
+        '200':
+          description: Password updated successfully
+        '400':
+          description: Old password is incorrect
+        '500':
+          description: Server error
+
+  /userdashboard/update:
+    put:
+      summary: Update User Information
+      description: Allows a user to update their name, email, and profile picture.
+      operationId: updateUser
+      tags:
+        - User
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: The name of the user.
+                email:
+                  type: string
+                  description: The email address of the user.
+                photo:
+                  type: string
+                  format: binary
+                  description: The new profile photo to upload (optional).
+      responses:
+        '200':
+          description: User successfully updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        description: The user's unique ID
+                      name:
+                        type: string
+                        description: The updated name of the user
+                      email:
+                        type: string
+                        description: The updated email of the user
+                      photo:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            description: The Cloudinary photo ID
+                          secure_url:
+                            type: string
+                            description: The secure URL of the uploaded photo
+              '400':
+                description: Bad request - Missing required fields or invalid file
+              '401':
+                description: Unauthorized - Invalid or missing token
+              '500':
+                description: Internal server error
+      components:
+        securitySchemes:
+          bearerAuth:
+            type: http
+            scheme: bearer
+            bearerFormat: JWT
+
+  /admin/users:
+    get:
+      summary: Get all users as an admin
+      tags:
+        - User
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of all users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  users:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        email:
+                          type: string
+                        photo:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            secure_url:
+                              type: string
+        '401':
+          description: Unauthorized - Invalid or missing token
+        '500':
+          description: Internal error
+
+  /admin/users/{id}:
+    put:
+      summary: Update a specific user's information
+      tags:
+        - User
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the user to update
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                role:
+                  type: string
+      responses:
+        '200':
+          description: User updated successfully
+
+    delete:
+      summary: Delete a specific user
+      operationId: adminDeleteOneUser
+      tags:
+        - User
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the user to delete
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User successfully deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        '401':
+          description: Invalid or missing token
+        '404':
+          description: User not found
+        '500':
+          description: Internal server error
+
+# product part
+
+  /addproduct:
+      post:
+        summary: Adds a new product
+        tags:
+          - Product
+        requestBody:
+          required: true
+          content:
+            multipart/form-data:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    description: The name of the product
+                  description:
+                    type: string
+                    description: The description of the product
+                  price:
+                    type: number
+                    format: float
+                    description: The price of the product
+                  photos:
+                    type: array
+                    items:
+                      type: string
+                      format: binary
+                    description: Product images
+        responses:
+          '200':
+            description: Product successfully added
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: true
+                    product:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        description:
+                          type: string
+                        price:
+                          type: number
+                          format: float
+                        photos:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              id:
+                                type: string
+                              secure_url:
+                                type: string
+          '401':
+            description: Unauthorized - Invalid or missing token
+          '400':
+            description: Bad request - Missing or invalid data
+          '500':
+            description: Internal server error
+
+  /products:
+    get:
+      summary: Get all products with pagination, search, and filter options
+      tags:
+        - Product
+      parameters:
+        - name: page
+          in: query
+          description: Page number for pagination (default is 1)
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          description: Number of products per page (default is 6)
+          required: false
+          schema:
+            type: integer
+            default: 6
+        - name: search
+          in: query
+          description: Search term for products
+          required: false
+          schema:
+            type: string
+        - name: filter
+          in: query
+          description: Filter conditions for products
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of products retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  products:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        description:
+                          type: string
+                        price:
+                          type: number
+                          format: float
+                        photos:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              id:
+                                type: string
+                              secure_url:
+                                type: string
+                  totalProductNumber:
+                    type: integer
+                    description: Total number of products in the database
+                  filteredProductNumber:
+                    type: integer
+                    description: Number of products after filtering
+        '404':
+          description: No products available
+        '500':
+          description: Internal server error
+
+  /review:
+    post:
+      summary: Add or update a review for a product
+      tags:
+        - Product
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          description: The ID of the product to review
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                rating:
+                  type: number
+                  description: Rating for the product (1 to 5)
+                  example: 4
+                comment:
+                  type: string
+                  description: Comment for the product review
+                  example: "Great product!"
+      responses:
+        '200':
+          description: Review successfully added or updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        '404':
+          description: Product not found
+        '500':
+          description: Internal server error
+
+  /admin/products/{id}:
+    put:
+      summary: Update a specific product by admin
+      tags:
+        - Product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the product to update
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Product name
+                  example: "New Product"
+                description:
+                  type: string
+                  description: Product description
+                  example: "Updated description for the product"
+                price:
+                  type: number
+                  format: float
+                  description: Product price
+                  example: 19.99
+                photos:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      secure_url:
+                        type: string
+                  description: Array of product photo objects
+      responses:
+        '200':
+          description: Product successfully updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  product:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      name:
+                        type: string
+                      description:
+                        type: string
+                      price:
+                        type: number
+                        format: float
+                      photos:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            secure_url:
+                              type: string
+        '404':
+          description: Product not found
+        '500':
+          description: Internal server error
+    delete:
+      summary: Delete a specific product by admin
+      operationId: adminDeleteSingleProduct
+      tags:
+        - Product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the product to delete
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Product successfully deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "The product ProductName was deleted successfully!"
+        '404':
+          description: Product not found
+        '500':
+          description: Internal server error
+
+  # order part
+  /order/create:
+    post:
+      summary: Create a new order
+      operationId: createOrder
+      tags:
+        - Order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                shippingInfo:
+                  type: object
+                  description: Shipping information
+                  properties:
+                    address:
+                      type: string
+                    city:
+                      type: string
+                    postalCode:
+                      type: string
+                    country:
+                      type: string
+                orderItems:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      productId:
+                        type: string
+                      quantity:
+                        type: integer
+                paymentInfo:
+                  type: object
+                  description: Payment information
+                  properties:
+                    paymentMethod:
+                      type: string
+                      example: "Credit Card"
+                taxAmount:
+                  type: number
+                  format: float
+                  description: Tax amount for the order
+                shippingAmount:
+                  type: number
+                  format: float
+                  description: Shipping fee for the order
+                totalAmount:
+                  type: number
+                  format: float
+                  description: Total amount of the order
+      responses:
+        '200':
+          description: Order created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  order:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                      shippingInfo:
+                        type: object
+                      orderItems:
+                        type: array
+                      paymentInfo:
+                        type: object
+                      taxAmount:
+                        type: number
+                      shippingAmount:
+                        type: number
+                      totalAmount:
+                        type: number
+        '400':
+          description: Invalid request data
+        '500':
+          description: Internal server error
+
+  /order/{id}:
+    get:
+      summary: Get a specific order by ID
+      tags:
+        - Order
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the order to retrieve
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Order found and returned successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  order:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                      shippingInfo:
+                        type: object
+                      orderItems:
+                        type: array
+                      paymentInfo:
+                        type: object
+                      taxAmount:
+                        type: number
+                      shippingAmount:
+                        type: number
+                      totalAmount:
+                        type: number
+                      user:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                          email:
+                            type: string
+        '401':
+          description: Order not found
+        '500':
+          description: Internal server error
+
+  /admin/order/{id}:
+    put:
+      summary: Update an order's status
+      tags:
+        - Order
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the order to update
+          schema:
+            type: string
+        - name: orderStatus
+          in: body
+          required: true
+          description: The new status of the order
+          schema:
+            type: object
+            properties:
+              orderStatus:
+                type: string
+                example: delivered
+      responses:
+        '200':
+          description: Order updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  order:
+                    $ref: '#/components/schemas/Order'
+        '401':
+          description: Unauthorized access or order already delivered
+        '404':
+          description: Order not found
+        '500':
+          description: Internal server error
+
+    delete:
+      summary: Delete a specific order
+      tags:
+        - Order
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the order to delete
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Order deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'The order deleted successfully!'
+        '401':
+          description: Unauthorized access or something went wrong in the process
+        '404':
+          description: Order not found
+        '500':
+          description: Internal server error
+
+    
+
+          
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,25 @@
+{
+   "shippingInfo": {
+      "address": "19 mayis caddesi",
+      "city": "istanbul",
+      "phoneNo": "5050603271",
+      "postalCode": "34522",
+      "state": "Marmara",
+      "country": "Turkey"
+   },
+   "orderItems": [
+      {
+         "name": "code T-shirt",
+         "quantity": 1,
+         "image": "https://console.cloudinary.com/console/c-07c8fc2a3b690e705d3f3fd885e74c/media_library/folders/ca0bdfd7e7894dc3c07813978bac48e7bd?view_mode=mosaic",
+         "price": 599,
+         "product": "67756acae6a5fe9bbb98a9b7"
+      }
+   ],
+   "paymentInfo": {
+      "id": "testString"
+   },
+   "taxAmount": "30",
+   "shippingAmount": "10",
+   "totalAmount": "100"
+}
